@@ -166,6 +166,7 @@ export default {
 
 .blog-content {
   color: #fff;
+  text-align: left; /* 让博客内容左对齐 */
 }
 
 .blog-item div.blog-content {

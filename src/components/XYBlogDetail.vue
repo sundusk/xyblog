@@ -94,9 +94,9 @@ export default {
 
 .content-card {
   margin-top: 600px;
-  padding: 20px;
-  margin-left: 80px;
-  margin-right: 80px;
+  padding: 100px; /* 调整内容与卡片边框的内边距 */
+  margin-left: 300px; /* 增加卡片左右间距 */
+  margin-right: 300px; /* 增加卡片左右间距 */
   margin-bottom: 20px;
   background-color: #444;
   color: #fff;
@@ -104,5 +104,6 @@ export default {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   position: relative;
   top: -100px;
+  text-align: left; /* 内容左对齐 */
 }
 </style>
