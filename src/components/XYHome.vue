@@ -1,6 +1,6 @@
 <template>
   <div class="rounded-bg">
-    <h1 class="title">闲云潭影日悠悠，物转星移几度秋</h1>
+    <h1 class="title">强风吹拂，聚散流云</h1>
   </div>
   <div class="bottom-rounded-bg">
     <h2 class="blog-title">sunduskxy</h2>
