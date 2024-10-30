@@ -1,6 +1,7 @@
 <template>
   <div class="rounded-bg">
-    <h1 class="title">闲云潭影日悠悠，物转星移几度秋</h1>
+    <!-- 这里通过动态绑定获取的title展示 -->
+    <h1 class="title">{{ pageTitle }}</h1>
   </div>
   <div class="bottom-rounded-bg">
     <h2 class="blog-title">sunduskxy</h2>
@@ -32,11 +33,14 @@
 <script>
 import { marked } from 'marked';
 import yaml from 'js-yaml';
+import axios from 'axios'; // 使用axios请求后端数据
 
 export default {
   name: 'XYHome',
   data() {
     return {
+      pageTitle: '加载中...', // 初始默认标题
+      backgroundImage: '', // 存储背景图URL
       blogs: [],
       currentPage: 1,
       pageSize: 10,
@@ -53,6 +57,27 @@ export default {
     },
   },
   methods: {
+    loadTitle() {
+      // 向后端获取动态标题
+      axios.get('http://localhost:3000/api/title')  // 使用完整的URL
+        .then(response => {
+          this.pageTitle = response.data.title; // 将获取到的标题赋值给pageTitle
+        })
+        .catch(error => {
+          console.error('获取标题时出错:', error);
+        });
+    },
+    loadBackgroundImage() {
+      // 向后端获取背景图URL
+      axios.get('http://localhost:3000/api/background') // 获取背景图
+        .then(response => {
+          this.backgroundImage = response.data.backgroundImage; // 存储返回的背景图URL
+          document.querySelector('.rounded-bg').style.backgroundImage = `url(${this.backgroundImage})`; // 动态设置背景图
+        })
+        .catch(error => {
+          console.error('获取背景图时出错:', error);
+        });
+    },
     loadBlogs() {
       try {
         const context = require.context('@/posts', false, /\.md$/);
@@ -101,7 +126,9 @@ export default {
     },
   },
   mounted() {
-    this.loadBlogs();
+    this.loadTitle(); // 页面挂载时加载动态标题
+    this.loadBackgroundImage(); // 页面挂载时加载背景图
+    this.loadBlogs(); // 加载博客内容
   },
 };
 </script>
@@ -113,8 +140,8 @@ export default {
   left: 0;
   right: 0;
   height: 400px;
-  background-image: url('@/assets/whiteBC.jpg');
   background-size: cover;
+  background-position: center;
 }
 
 .title {
