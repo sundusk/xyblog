@@ -2,54 +2,51 @@
   <div class="blog-detail">
     <div class="header-image">
       <h1>{{ blogTitle }}</h1>
-      <p class="blog-date">{{ blogDate }}</p> <!-- 显示博客创建时间 -->
+      <p class="blog-date">{{ formattedDate }}</p> <!-- 显示博客创建时间 -->
     </div>
-    <div class="content-card" v-html="blogContent"></div>
+    <div class="content-card" v-html="blogContent"></div> <!-- 使用 v-html 渲染 HTML 内容 -->
   </div>
 </template>
 
 <script>
-import { marked } from 'marked';
-import yaml from 'js-yaml';
+import axios from 'axios';
 
 export default {
   name: 'XYBlogDetail',
   data() {
     return {
       blogTitle: '',
-      blogContent: '',
+      blogContent: '', // 这里将直接接收后端返回的 HTML 内容
       blogDate: '', // 博客创建日期
     };
   },
+  computed: {
+    // 格式化日期
+    formattedDate() {
+      return this.blogDate ? new Date(this.blogDate).toLocaleDateString() : '';
+    },
+  },
   created() {
-    const blogId = this.$route.params.id;
+    const blogId = this.$route.params.id; // 获取路由中的博客ID
+    console.log("接收到的博客ID:", blogId); // 打印接收到的博客ID以调试
     this.fetchBlogContent(blogId);
   },
   methods: {
-    fetchBlogContent(blogId) {
-      const context = require.context('@/posts', false, /\.md$/);
-      const blogKey = `./${blogId}.md`;
+    async fetchBlogContent(blogId) {
+      try {
+        console.log("正在获取博客内容，博客ID:", blogId); // 记录请求的博客ID
+        const response = await axios.get(`http://localhost:3000/api/blog/${blogId}`);
+        const blog = response.data;
 
-      if (context.keys().includes(blogKey)) {
-        const markdownContent = context(blogKey).default;
-
-        // 提取 YAML front matter
-        const yamlFrontMatterMatch = markdownContent.match(/---\s*([\s\S]*?)\s*---/);
-        let metadata = { date: '未知日期', title: '未知标题' };
-
-        if (yamlFrontMatterMatch) {
-          const yamlContent = yamlFrontMatterMatch[1];
-          // 使用 js-yaml 解析 YAML 内容
-          metadata = yaml.load(yamlContent);
-        }
-
-        this.blogTitle = metadata.title || '未知标题'; // 从 YAML 中获取标题
-        this.blogContent = marked(markdownContent.replace(/---\s*([\s\S]*?)\s*---/, '')); // 渲染Markdown内容
-        this.blogDate = metadata.date || '未知日期'; // 从 YAML 中获取日期
-      } else {
+        // 从响应中解析数据
+        this.blogTitle = blog.title || '未知标题';
+        this.blogContent = blog.content || '内容加载失败';
+        this.blogDate = blog.date || '未知日期';
+      } catch (error) {
+        console.error('获取博客内容时出错:', error);
         this.blogTitle = '博客未找到';
         this.blogContent = '抱歉，没有找到您请求的博客内容。';
-        this.blogDate = ''; // 未找到博客时清空日期
+        this.blogDate = '';
       }
     },
   },

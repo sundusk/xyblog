@@ -10,7 +10,7 @@
         class="blog-item"
         v-for="(blog, index) in paginatedBlogs"
         :key="index"
-        @click="goToBlog(blog.id)"
+        @click="goToBlog(blog._id)"  
       >
         <h3>{{ blog.title }}</h3>
         <div v-html="getTruncatedContent(blog.content)" class="blog-content"></div>
@@ -31,8 +31,6 @@
 </template>
 
 <script>
-import { marked } from 'marked';
-import yaml from 'js-yaml';
 import axios from 'axios'; // 使用axios请求后端数据
 
 export default {
@@ -58,57 +56,35 @@ export default {
   },
   methods: {
     loadTitle() {
-      // 向后端获取动态标题
-      axios.get('http://localhost:3000/api/title')  // 使用完整的URL
+      axios.get('http://localhost:3000/api/title')
         .then(response => {
-          this.pageTitle = response.data.title; // 将获取到的标题赋值给pageTitle
+          this.pageTitle = response.data.title;
         })
         .catch(error => {
           console.error('获取标题时出错:', error);
         });
     },
     loadBackgroundImage() {
-      // 向后端获取背景图URL
-      axios.get('http://localhost:3000/api/background') // 获取背景图
+      axios.get('http://localhost:3000/api/background')
         .then(response => {
-          this.backgroundImage = response.data.backgroundImage; // 存储返回的背景图URL
-          document.querySelector('.rounded-bg').style.backgroundImage = `url(${this.backgroundImage})`; // 动态设置背景图
+          this.backgroundImage = response.data.backgroundImage;
+          document.querySelector('.rounded-bg').style.backgroundImage = `url(${this.backgroundImage})`;
         })
         .catch(error => {
           console.error('获取背景图时出错:', error);
         });
     },
     loadBlogs() {
-      try {
-        const context = require.context('@/posts', false, /\.md$/);
-        const blogs = context.keys().map((key) => {
-          const markdownContent = context(key).default;
-
-          // 提取 YAML front matter
-          const yamlFrontMatterMatch = markdownContent.match(/---\s*([\s\S]*?)\s*---/);
-          let metadata = { date: '未知日期', title: '未知标题' };
-
-          if (yamlFrontMatterMatch) {
-            const yamlContent = yamlFrontMatterMatch[1];
-            // 使用 js-yaml 解析 YAML 内容
-            metadata = yaml.load(yamlContent);
-          }
-
-          const renderedContent = marked(markdownContent.replace(/---\s*([\s\S]*?)\s*---/, ''));
-
-          return {
-            id: key.slice(2, -3),
-            title: metadata.title || '未知标题',
-            content: renderedContent,
-            date: metadata.date || '未知日期',
-          };
+      axios.get('http://localhost:3000/api/blogs')  // 请求后端API
+        .then(response => {
+          this.blogs = response.data;  // 获取到的博客数据存储到 blogs
+        })
+        .catch(error => {
+          console.error('加载博客文章时出错:', error);
         });
-        this.blogs = blogs;
-      } catch (error) {
-        console.error('加载博客文章时出错:', error);
-      }
     },
     goToBlog(blogId) {
+      console.log("即将跳转的博客ID:", blogId); // 打印博客ID以调试
       this.$router.push({ name: 'XYBlogDetail', params: { id: blogId } });
     },
     changePage(page) {
@@ -118,9 +94,9 @@ export default {
       }
     },
     getTruncatedContent(content) {
-      const plainText = content.replace(/(<([^>]+)>)/gi, '');
+      const plainText = content.replace(/(<([^>]+)>)/gi, '');  // 移除 HTML 标签
       if (plainText.length > this.contentLimit) {
-        return marked(plainText.slice(0, this.contentLimit) + '...');
+        return plainText.slice(0, this.contentLimit) + '...';
       }
       return content;
     },
@@ -134,6 +110,7 @@ export default {
 </script>
 
 <style>
+/* 样式代码保持不变 */
 .rounded-bg {
   position: absolute;
   top: 0;
@@ -193,7 +170,7 @@ export default {
 
 .blog-content {
   color: #fff;
-  text-align: left; /* 让博客内容左对齐 */
+  text-align: left;
 }
 
 .blog-item div.blog-content {
@@ -204,13 +181,11 @@ export default {
   text-overflow: ellipsis;
 }
 
-/* 调整日期容器的样式 */
 .blog-title-container {
   display: flex;
   align-items: center;
   margin-top: 10px;
   color: #bbb;
-  
 }
 
 .date-icon {
