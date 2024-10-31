@@ -13,14 +13,12 @@
       >
         <h3>{{ blog.title }}</h3>
         <div v-html="getTruncatedContent(blog.content)" class="blog-content"></div>
-        <!-- 确保日期容器的结构正确 -->
         <div class="blog-title-container">
           <img src="@/assets/riqi.png" alt="日期图标" class="date-icon" />
           <p class="blog-title-content">{{ blog.date }}</p>
         </div>
       </li>
     </ul>
-    <!-- 分页控制 -->
     <div class="pagination">
       <button @click="changePage(currentPage - 1)" :disabled="currentPage === 1">上一页</button>
       <span>第 {{ currentPage }} 页，共 {{ totalPages }} 页</span>
@@ -59,13 +57,11 @@ export default {
         const blogs = context.keys().map((key) => {
           const markdownContent = context(key).default;
 
-          // 提取 YAML front matter
           const yamlFrontMatterMatch = markdownContent.match(/---\s*([\s\S]*?)\s*---/);
           let metadata = { date: '未知日期', title: '未知标题' };
 
           if (yamlFrontMatterMatch) {
             const yamlContent = yamlFrontMatterMatch[1];
-            // 使用 js-yaml 解析 YAML 内容
             metadata = yaml.load(yamlContent);
           }
 
@@ -78,7 +74,9 @@ export default {
             date: metadata.date || '未知日期',
           };
         });
-        this.blogs = blogs;
+
+        // 按日期排序，最近的日期在前
+        this.blogs = blogs.sort((a, b) => new Date(b.date) - new Date(a.date));
       } catch (error) {
         console.error('加载博客文章时出错:', error);
       }
@@ -166,7 +164,7 @@ export default {
 
 .blog-content {
   color: #fff;
-  text-align: left; /* 让博客内容左对齐 */
+  text-align: left;
 }
 
 .blog-item div.blog-content {
@@ -177,13 +175,11 @@ export default {
   text-overflow: ellipsis;
 }
 
-/* 调整日期容器的样式 */
 .blog-title-container {
   display: flex;
   align-items: center;
   margin-top: 10px;
   color: #bbb;
-  
 }
 
 .date-icon {
